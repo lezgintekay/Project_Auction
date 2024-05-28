@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Project_Auction_Business\Project_Auction_Business.csproj" />
     <ProjectReference Include="..\Project_Auction_Data_Access\Project_Auction_Data_Access.csproj" />
   </ItemGroup>
 
