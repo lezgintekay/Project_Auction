@@ -6,6 +6,7 @@ using Project_Auction_Business.Abstraction;
 using Project_Auction_Business.Dtos;
 using Project_Auction_Core.Models;
 using Project_Auction_Data_Access.Context;
+using Project_Auction_Data_Access.Enums;
 using Project_Auction_Data_Access.Models;
 using System;
 using System.Collections.Generic;
@@ -39,9 +40,48 @@ namespace Project_Auction_Business.Concrete
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse> Register(RegisterRequestDTO model)
+        public async Task<ApiResponse> Register(RegisterRequestDTO model)
         {
-            throw new NotImplementedException();
+            var userFromDb = _context.ApplicationUsers.FirstOrDefault(x=>x.UserName.ToLower() == model.UserName.ToLower());
+            if(userFromDb!=null)
+            {
+                _response.StatusCode = System.Net.HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Username already exist");
+                return _response; 
+            }
+            var newUser = _mapper.Map<ApplicationUser>(model);
+            var result = await _userManager.CreateAsync(newUser, model.Password);
+            if(result.Succeeded)
+            {
+                var isTrue = _roleManager.RoleExistsAsync(UserType.Administrator.ToString()).GetAwaiter().GetResult();
+                if(!_roleManager.RoleExistsAsync(UserType.Administrator.ToString()).GetAwaiter().GetResult())
+                {
+                    await _roleManager.CreateAsync(new IdentityRole(UserType.Administrator.ToString()));
+                    await _roleManager.CreateAsync(new IdentityRole(UserType.Seller.ToString()));
+                    await _roleManager.CreateAsync(new IdentityRole(UserType.NormalUser.ToString()));
+                }
+                if(model.UserType.ToString().ToLower() == UserType.Administrator.ToString().ToLower())
+                {
+                    await _userManager.AddToRoleAsync(newUser, UserType.Administrator.ToString());
+                }
+                if (model.UserType.ToString().ToLower() == UserType.Seller.ToString().ToLower())
+                {
+                    await _userManager.AddToRoleAsync(newUser, UserType.Seller.ToString());
+                }
+                else
+                {
+                    await _userManager.AddToRoleAsync(newUser, UserType.NormalUser.ToString());
+                }
+                _response.StatusCode = System.Net.HttpStatusCode.Created;
+                _response.IsSuccess = true;
+                return _response;
+            }
+            foreach(var error in result.Errors)
+            {
+                _response.ErrorMessages.Add(error.Code.ToString());
+            }
+            return _response;
         }
     }
 }

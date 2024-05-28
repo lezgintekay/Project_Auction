@@ -12,7 +12,7 @@ using Project_Auction_Data_Access.Context;
 namespace Project_Auction_Data_Access.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240527214120_Init")]
+    [Migration("20240528125346_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -158,6 +158,133 @@ namespace Project_Auction_Data_Access.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Project_Auction_Data_Access.Domain.Bid", b =>
+                {
+                    b.Property<int>("BidId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BidId"));
+
+                    b.Property<decimal>("BidAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("BidDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("BidStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("VehicleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BidId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("VehicleId");
+
+                    b.ToTable("Bids");
+                });
+
+            modelBuilder.Entity("Project_Auction_Data_Access.Domain.PaymentHistory", b =>
+                {
+                    b.Property<int>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentId"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("PayDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("VehicleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("VehicleId");
+
+                    b.ToTable("PaymentHistories");
+                });
+
+            modelBuilder.Entity("Project_Auction_Data_Access.Domain.Vehicle", b =>
+                {
+                    b.Property<int>("VehicleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VehicleId"));
+
+                    b.Property<string>("AdditionalInformation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("AuctionPrice")
+                        .HasColumnType("float");
+
+                    b.Property<string>("BrandAndModel")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("EngineCapacity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ManifacturingYear")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Millage")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PlateNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SellerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("VehicleId");
+
+                    b.HasIndex("SellerId");
+
+                    b.ToTable("Vehicles");
+                });
+
             modelBuilder.Entity("Project_Auction_Data_Access.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -170,6 +297,9 @@ namespace Project_Auction_Data_Access.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -177,11 +307,17 @@ namespace Project_Auction_Data_Access.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("FullName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("MyProperty")
+                        .HasColumnType("int");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -199,6 +335,9 @@ namespace Project_Auction_Data_Access.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("ProfilePicture")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -272,6 +411,69 @@ namespace Project_Auction_Data_Access.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Project_Auction_Data_Access.Domain.Bid", b =>
+                {
+                    b.HasOne("Project_Auction_Data_Access.Models.ApplicationUser", "User")
+                        .WithMany("Bids")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Project_Auction_Data_Access.Domain.Vehicle", "Vehicle")
+                        .WithMany("Bids")
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("Project_Auction_Data_Access.Domain.PaymentHistory", b =>
+                {
+                    b.HasOne("Project_Auction_Data_Access.Models.ApplicationUser", "User")
+                        .WithMany("PaymentHistories")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Project_Auction_Data_Access.Domain.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("Project_Auction_Data_Access.Domain.Vehicle", b =>
+                {
+                    b.HasOne("Project_Auction_Data_Access.Models.ApplicationUser", "Seller")
+                        .WithMany("Vehicles")
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Seller");
+                });
+
+            modelBuilder.Entity("Project_Auction_Data_Access.Domain.Vehicle", b =>
+                {
+                    b.Navigation("Bids");
+                });
+
+            modelBuilder.Entity("Project_Auction_Data_Access.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("Bids");
+
+                    b.Navigation("PaymentHistories");
+
+                    b.Navigation("Vehicles");
                 });
 #pragma warning restore 612, 618
         }
