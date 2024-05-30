@@ -11,9 +11,9 @@
     <ProjectReference Include="..\Project_Auction_Data_Access\Project_Auction_Data_Access.csproj" />
   </ItemGroup>
 
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.13" />
   </ItemGroup>
-
 
 </Project>

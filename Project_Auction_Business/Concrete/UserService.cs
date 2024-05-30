@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
-using Azure;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Project_Auction_Business.Abstraction;
@@ -27,7 +25,7 @@ namespace Project_Auction_Business.Concrete
         private readonly ApiResponse _response;
         private readonly UserManager<ApplicationUser> _userManager; 
         private readonly RoleManager<IdentityRole> _roleManager;
-        private string secretKey;
+        private string secretkey;
         public UserService(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, ApiResponse response, IMapper mapper, IConfiguration _configuration, ApplicationDbContext context )
         {
             _userManager = userManager;
@@ -35,9 +33,12 @@ namespace Project_Auction_Business.Concrete
             _mapper = mapper;
             _context = context;
             _roleManager = roleManager;
-            secretKey = _configuration.GetValue<string>("SecretKey : jwtKey");
-            
+
+            secretkey = _configuration.GetValue<string>("SecretKey:jwtKey");
+
+
         }
+
 
         public async Task<ApiResponse> Login(LoginRequestDTO model)
         {
@@ -51,12 +52,10 @@ namespace Project_Auction_Business.Concrete
                     _response.ErrorMessages.Add("Your entry information is not correct");
                     _response.IsSuccess = false;
                     return _response;
-
                 }
-
                 var role = await _userManager.GetRolesAsync(userFromDb);
-                JwtSecurityTokenHandler tokenHandler = new(); 
-                byte[] key = Encoding.ASCII.GetBytes(secretKey);
+                JwtSecurityTokenHandler tokenHandler = new();
+                byte[] key = Encoding.ASCII.GetBytes(secretkey);
 
                 SecurityTokenDescriptor tokenDescriptor = new()
                 {
@@ -64,12 +63,12 @@ namespace Project_Auction_Business.Concrete
                     {
                         new Claim(ClaimTypes.NameIdentifier, userFromDb.Id),
                         new Claim(ClaimTypes.Email, userFromDb.Email),
-                        new Claim(ClaimTypes.Role, role.FirstOrDefault()),
+                        new Claim(ClaimTypes.Role, role.FirstOrDefault() == null ? "NormalUser" : role.FirstOrDefault()),
                         new Claim("fullName", userFromDb.FullName)
-
                     }),
-                    Expires = DateTime.UtcNow.AddDays(1), 
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),SecurityAlgorithms.HmacSha256Signature)
+                    Expires = DateTime.UtcNow.AddDays(1),
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+
                 };
 
                 SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
@@ -79,14 +78,16 @@ namespace Project_Auction_Business.Concrete
                     Email = userFromDb.Email,
                     Token = tokenHandler.WriteToken(token),
                 };
-                _response.Result = _model; 
-                _response.IsSuccess = true; 
+                _response.Result = _model;
+                _response.IsSuccess = true;
                 _response.StatusCode = System.Net.HttpStatusCode.OK;
                 return _response;
+
             }
             _response.IsSuccess = false;
-            _response.ErrorMessages.Add("Oooops! Something went wrong");
+            _response.ErrorMessages.Add("Ooops! something went wrong");
             return _response;
+
         }
         public async Task<ApiResponse> Register(RegisterRequestDTO model)
         {
@@ -98,7 +99,16 @@ namespace Project_Auction_Business.Concrete
                 _response.ErrorMessages.Add("Username already exist");
                 return _response; 
             }
-            var newUser = _mapper.Map<ApplicationUser>(model);
+            //var newUser = _mapper.Map<ApplicationUser>(model);
+
+            ApplicationUser newUser = new()
+            {
+                FullName = model.FullName,
+                UserName = model.UserName,
+                NormalizedEmail = model.UserName.ToUpper(),
+                Email = model.UserName
+            };
+
             var result = await _userManager.CreateAsync(newUser, model.Password);
             if(result.Succeeded)
             {
